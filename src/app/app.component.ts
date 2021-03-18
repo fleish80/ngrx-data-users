@@ -1,32 +1,105 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
+import {UserService} from './user.service';
+import {Observable} from 'rxjs';
+import {User} from './user.model';
+import {FormBuilder, FormGroup} from '@angular/forms';
 
 @Component({
-  selector: 'app-root',
-  template: `
-    <!--The content below is only a placeholder and can be replaced.-->
-    <div style="text-align:center" class="content">
-      <h1>
-        Welcome to {{title}}!
-      </h1>
-      <span style="display: block">{{ title }} app is running!</span>
-      <img width="300" alt="Angular Logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
-    </div>
-    <h2>Here are some links to help you start: </h2>
-    <ul>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/cli">CLI Documentation</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
-      </li>
-    </ul>
-    
-  `,
-  styles: []
+    selector: 'app-root',
+    template: `
+        <div *ngIf="loading$ | async">Loading....</div>
+        <ul>
+            <li *ngFor="let user of users$ | async">
+                <span>{{user._id}}</span>
+                <span>{{user.firstName}}</span>
+                <span>{{user.lastName}}</span>
+                <span><button (click)="setSelectedUser(user)">Update</button></span>
+                <span><button (click)="delete(user)">Delete</button></span>
+            </li>
+        </ul>
+
+        <form [formGroup]="formNew" (ngSubmit)="add(formNew.getRawValue())">
+            <label>First Name</label>
+            <input formControlName="firstName">
+            <label>Last Name</label>
+            <input formControlName="lastName">
+            <button type="submit">Add</button>
+        </form>
+
+        <form *ngIf="selectedUser" [formGroup]="formUpdate" (ngSubmit)="update(formUpdate.getRawValue())">
+            <label>Id</label>
+            <input formControlName="_id" disabled>
+            <label>First Name</label>
+            <input formControlName="firstName">
+            <label>Last Name</label>
+            <input formControlName="lastName">
+            <button type="submit">Update</button>
+        </form>
+
+
+    `,
+    styles: [`
+        ul {
+            list-style: none;
+        }
+
+        li span {
+            width: 250px;
+            display: inline-block;
+        }
+
+    `]
 })
-export class AppComponent {
-  title = 'ngrx-data-users';
+export class AppComponent implements OnInit {
+
+    loading$: Observable<boolean>;
+    users$: Observable<User[]>;
+    formNew: FormGroup;
+    formUpdate: FormGroup;
+    selectedUser: User;
+
+    constructor(private userService: UserService, private fb: FormBuilder) {
+    }
+
+    ngOnInit() {
+        this.getUsers();
+        this.users$ = this.userService.entities$;
+        this.loading$ = this.userService.loading$;
+
+        this.formNew = this.fb.group({
+            _id: [],
+            firstName: [],
+            lastName: []
+        });
+
+        this.formUpdate = this.fb.group({
+            _id: [],
+            firstName: [],
+            lastName: []
+        })
+    }
+
+    add(user: User) {
+        this.userService.add(user);
+    }
+
+    delete(user: User) {
+        this.userService.delete(user._id);
+    }
+
+    getUsers() {
+        this.userService.getAll();
+    }
+
+    update(user: User) {
+        this.userService.update(user);
+    }
+
+    setSelectedUser(user: User) {
+        this.selectedUser = user;
+        this.formUpdate.reset();
+        this.formUpdate.get('_id').setValue(this.selectedUser._id);
+        this.formUpdate.get('firstName').setValue(this.selectedUser.firstName);
+        this.formUpdate.get('lastName').setValue(this.selectedUser.lastName);
+    }
 }
