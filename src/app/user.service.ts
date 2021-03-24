@@ -1,13 +1,26 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {User} from './user.model';
-import {EntityCollectionServiceBase, EntityCollectionServiceElementsFactory} from '@ngrx/data';
+import {HttpClient} from '@angular/common/http';
+import {Observable} from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
-export class UserService extends EntityCollectionServiceBase<User> {
+export class UserService {
 
-  constructor(serviceElementsFactory: EntityCollectionServiceElementsFactory) {
-    super('User', serviceElementsFactory)
+  constructor(private http: HttpClient) {
   }
+
+  loadUsers(): Observable<User[]> {
+    return this.http.get<User[]>('api/users');
+  }
+
 }
+
+
+// export class UserService extends EntityCollectionServiceBase<User> {
+//
+//   constructor(serviceElementsFactory: EntityCollectionServiceElementsFactory) {
+//     super('User', serviceElementsFactory)
+//   }
+// }

@@ -9,6 +9,8 @@ import { StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import {HttpClientModule} from '@angular/common/http';
 import {ReactiveFormsModule} from '@angular/forms';
+import {UserEffects} from './user.effects';
+import {userReducer} from './user.reducer';
 
 @NgModule({
   declarations: [
@@ -18,8 +20,9 @@ import {ReactiveFormsModule} from '@angular/forms';
     BrowserModule,
     HttpClientModule,
     StoreModule.forRoot({}, {}),
-    EffectsModule.forRoot([]),
-    EntityDataModule.forRoot(entityConfig),
+    StoreModule.forFeature('users', userReducer),
+    EffectsModule.forRoot([UserEffects]),
+    // EntityDataModule.forRoot(entityConfig),
     StoreDevtoolsModule.instrument(),
     ReactiveFormsModule,
   ],
